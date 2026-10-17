@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  # Laravel Application
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: admin_app
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    environment:
+      APP_NAME: "Laravel Admin"
+      APP_ENV: production
+      APP_DEBUG: "false"
+      APP_URL: "http://45.32.104.231"
+      DB_CONNECTION: mysql
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_DATABASE: admin_start
+      DB_USERNAME: root
+      DB_PASSWORD: root
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - admin_network
+
+  # MySQL Database
+  mysql:
+    image: mysql:8.0
+    container_name: admin_mysql
+    restart: unless-stopped
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: admin_start
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+    networks:
+      - admin_network
+
+networks:
+  admin_network:
+    driver: bridge
+
+volumes:
+  mysql_data:
+    driver: local

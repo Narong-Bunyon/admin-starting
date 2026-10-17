@@ -23,6 +23,30 @@ if grep -q "^DB_CONNECTION=sqlite" /var/www/html/.env; then
     chown www-data:www-data /var/www/html/database/database.sqlite
 fi
 
+# Wait for database to be ready (especially when running with MySQL container)
+if [ "$DB_CONNECTION" = "mysql" ] || grep -q "^DB_CONNECTION=mysql" /var/www/html/.env; then
+    echo "Waiting for MySQL database to become ready..."
+    MAX_TRIES=30
+    COUNT=0
+    until php -r "
+        \$host = env('DB_HOST', 'mysql');
+        \$port = env('DB_PORT', 3306);
+        \$db   = env('DB_DATABASE', 'admin_start');
+        \$user = env('DB_USERNAME', 'root');
+        \$pass = env('DB_PASSWORD', 'root');
+        try {
+            new PDO(\"mysql:host=\$host;port=\$port;dbname=\$db\", \$user, \$pass, [PDO::ATTR_TIMEOUT => 3]);
+            exit(0);
+        } catch (\Exception \$e) {
+            exit(1);
+        }
+    " 2>/dev/null || [ $COUNT -eq $MAX_TRIES ]; do
+        COUNT=$((COUNT+1))
+        echo "Waiting for MySQL connection... ($COUNT/$MAX_TRIES)"
+        sleep 2
+    done
+fi
+
 # Run migrations automatically if database is accessible
 echo "Checking database, running migrations and seeds..."
 if php artisan migrate --force; then
