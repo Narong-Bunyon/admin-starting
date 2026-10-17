@@ -34,4 +34,22 @@ class AdminController extends Controller
 
         return view('admin.users', compact('users', 'stats', 'search'));
     }
+
+    /**
+     * Delete a user from the system
+     */
+    public function destroy(User $user)
+    {
+        // Prevent admin from deleting themselves
+        if (auth()->id() === $user->id) {
+            return redirect()->route('admin.users')
+                ->with('error', 'You cannot delete your own account.');
+        }
+
+        $userName = $user->name;
+        $user->delete();
+
+        return redirect()->route('admin.users')
+            ->with('success', "User '{$userName}' has been deleted successfully.");
+    }
 }

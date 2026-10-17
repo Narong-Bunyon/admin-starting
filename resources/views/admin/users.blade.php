@@ -61,6 +61,7 @@
                     <th>Role</th>
                     <th>Registered At</th>
                     <th>Last Active / Login</th>
+                    <th style="text-align: right; width: 110px;">Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -96,10 +97,23 @@
                                 <span style="color: var(--text-dim); font-size: 0.85rem;">Never logged in</span>
                             @endif
                         </td>
+                        <td style="text-align: right;">
+                            @if(auth()->id() !== $user->id)
+                                <form action="{{ route('admin.users.destroy', $user) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete user \'{{ $user->name }}\'? This action cannot be undone.');" style="display: inline;">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-danger btn-sm" title="Delete user">
+                                        Delete
+                                    </button>
+                                </form>
+                            @else
+                                <span style="font-size: 0.8rem; color: var(--text-dim); font-style: italic;">Current</span>
+                            @endif
+                        </td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="5" style="text-align: center; padding: 3rem; color: var(--text-muted);">
+                        <td colspan="6" style="text-align: center; padding: 3rem; color: var(--text-muted);">
                             No users found matching your search.
                         </td>
                     </tr>

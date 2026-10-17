@@ -31,5 +31,6 @@ Route::middleware('auth')->group(function () {
     // Admin-only Routes
     Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {
         Route::get('/users', [AdminController::class, 'index'])->name('users');
+        Route::delete('/users/{user}', [AdminController::class, 'destroy'])->name('users.destroy');
     });
 });
