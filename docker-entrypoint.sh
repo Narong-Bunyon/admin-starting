@@ -24,8 +24,10 @@ if grep -q "^DB_CONNECTION=sqlite" /var/www/html/.env; then
 fi
 
 # Run migrations automatically if database is accessible
-echo "Checking database and running migrations..."
-php artisan migrate --force || echo "Warning: Database migration skipped (ensure DB credentials are set in environment if using external DB)."
+echo "Checking database, running migrations and seeds..."
+if php artisan migrate --force; then
+    php artisan db:seed --force || true
+fi
 
 # Clear and cache configurations for production speed
 php artisan config:clear
