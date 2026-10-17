@@ -1,38 +1,43 @@
-FROM php:8.2-fpm-alpine
+FROM php:8.2-cli-alpine
 
 # Set working directory
 WORKDIR /var/www/html
 
-# Install system dependencies & PHP extensions
+# Install required system packages, PHP extensions & Node.js
 RUN apk update && apk add --no-cache \
     curl \
+    git \
+    unzip \
     libpng-dev \
     libxml2-dev \
-    zip \
-    unzip \
     oniguruma-dev \
+    sqlite-dev \
     nodejs \
     npm \
-    nginx \
-    supervisor \
-    && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd
+    && docker-php-ext-install pdo pdo_mysql pdo_sqlite mbstring bcmath gd opcache
 
-# Install Composer
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+# Install Composer from official image
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 # Copy application files
 COPY . /var/www/html
 
-# Install PHP dependencies
-RUN composer install --no-interaction --optimize-autoloader --no-dev
+# Copy entrypoint script and ensure executable permissions
+COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
-# Install NPM dependencies & build assets
-RUN npm install && npm run build
+# Install PHP dependencies without dev packages
+RUN composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev
 
-# Fix permissions
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+# Install NPM dependencies, compile Vite assets, then remove node_modules to keep image small
+RUN npm ci || npm install && npm run build && rm -rf node_modules
 
-# Expose HTTP port
+# Ensure proper storage & cache permissions
+RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache \
+    && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
+
+# Expose web port
 EXPOSE 80
 
-CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=80"]
+# Run entrypoint script
+ENTRYPOINT ["docker-entrypoint.sh"]
