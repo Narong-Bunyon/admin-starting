@@ -21,8 +21,14 @@ if [ -n "$DB_PASSWORD" ]; then
     sed -i "s|^DB_PASSWORD=.*|DB_PASSWORD=${DB_PASSWORD}|" /var/www/html/.env 2>/dev/null || true
 fi
 
-# Ensure APP_KEY exists
-if ! grep -q "^APP_KEY=base64:" /var/www/html/.env; then
+# Ensure APP_KEY exists in .env or from environment
+if [ -n "$APP_KEY" ]; then
+    if grep -q "^APP_KEY=" /var/www/html/.env; then
+        sed -i "s|^APP_KEY=.*|APP_KEY=${APP_KEY}|" /var/www/html/.env
+    else
+        echo "APP_KEY=${APP_KEY}" >> /var/www/html/.env
+    fi
+elif ! grep -q "^APP_KEY=base64:" /var/www/html/.env; then
     echo "Generating Application Key..."
     php artisan key:generate --force
 fi
@@ -67,10 +73,11 @@ if php artisan migrate --force; then
     php artisan db:seed --force || true
 fi
 
-# Clear and cache configurations for production speed
+# Clear and optimize configurations
 php artisan config:clear
 php artisan route:clear
 php artisan view:clear
+php artisan config:cache
 
 echo "Starting application on port 80..."
 exec php artisan serve --host=0.0.0.0 --port=80
