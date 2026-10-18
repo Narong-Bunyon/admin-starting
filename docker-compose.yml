@@ -14,7 +14,7 @@ services:
       APP_NAME: "Laravel Admin"
       APP_ENV: production
       APP_DEBUG: "false"
-      APP_URL: "http://207.148.70.217"
+      APP_URL: "${APP_URL:-http://16.178.124.83:8000}"
       APP_KEY: "${APP_KEY:-base64:MGaBQR4fwo5VxE/jJTtuNBcI/XUsrVcGs8vCuvP+WzQ=}"
       DB_CONNECTION: mysql
       DB_HOST: mysql

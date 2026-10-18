@@ -21,6 +21,11 @@ if [ -n "$DB_PASSWORD" ]; then
     sed -i "s|^DB_PASSWORD=.*|DB_PASSWORD=${DB_PASSWORD}|" /var/www/html/.env 2>/dev/null || true
 fi
 
+# Ensure APP_URL in .env matches container environment
+if [ -n "$APP_URL" ]; then
+    sed -i "s|^APP_URL=.*|APP_URL=${APP_URL}|" /var/www/html/.env 2>/dev/null || true
+fi
+
 # Ensure APP_KEY exists in .env or from environment
 if [ -n "$APP_KEY" ]; then
     if grep -q "^APP_KEY=" /var/www/html/.env; then
