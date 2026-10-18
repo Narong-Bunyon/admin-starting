@@ -16,7 +16,7 @@ services:
       APP_NAME: "Laravel Admin"
       APP_ENV: production
       APP_DEBUG: "false"
-      APP_URL: "http://45.32.104.231"
+      APP_URL: "http://207.148.70.217"
       DB_CONNECTION: mysql
       DB_HOST: mysql
       DB_PORT: 3306
