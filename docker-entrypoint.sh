@@ -7,6 +7,20 @@ if [ ! -f /var/www/html/.env ]; then
     cp /var/www/html/.env.example /var/www/html/.env
 fi
 
+# Ensure database config in .env matches container environment variables
+if [ -n "$DB_HOST" ]; then
+    sed -i "s|^DB_HOST=.*|DB_HOST=${DB_HOST}|" /var/www/html/.env 2>/dev/null || true
+fi
+if [ -n "$DB_DATABASE" ]; then
+    sed -i "s|^DB_DATABASE=.*|DB_DATABASE=${DB_DATABASE}|" /var/www/html/.env 2>/dev/null || true
+fi
+if [ -n "$DB_USERNAME" ]; then
+    sed -i "s|^DB_USERNAME=.*|DB_USERNAME=${DB_USERNAME}|" /var/www/html/.env 2>/dev/null || true
+fi
+if [ -n "$DB_PASSWORD" ]; then
+    sed -i "s|^DB_PASSWORD=.*|DB_PASSWORD=${DB_PASSWORD}|" /var/www/html/.env 2>/dev/null || true
+fi
+
 # Ensure APP_KEY exists
 if ! grep -q "^APP_KEY=base64:" /var/www/html/.env; then
     echo "Generating Application Key..."
